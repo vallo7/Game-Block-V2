@@ -48,7 +48,8 @@ const canvasRenderer = new CanvasRenderer(canvas);
 const boardRenderer = new BoardRenderer();
 const blockRenderer = new BlockRenderer();
 const pathRenderer = new PathRenderer();
-const effectsRenderer = new EffectsRenderer();
+const animations = new AnimationSystem();
+const effectsRenderer = new EffectsRenderer(animations);
 const particles = new ParticleSystem();
 const animations = new AnimationSystem();
 
@@ -106,6 +107,38 @@ engine.on("move", (result) => {
       width: canvasRenderer.width,
       height: canvasRenderer.height,
     }
+
+    const state = engine.getState();
+const intensity = Math.min(
+  2,
+  1 + clearCount * 0.2
+);
+
+for (const row of result.clear.rows ?? []) {
+  for (let col = 0; col < state.size; col += 1) {
+    animations.addClear(
+      metrics.offsetX +
+        (col + 0.5) * metrics.cellSize,
+      metrics.offsetY +
+        (row + 0.5) * metrics.cellSize,
+      metrics.cellSize,
+      intensity
+    );
+  }
+}
+
+for (const col of result.clear.columns ?? []) {
+  for (let row = 0; row < state.size; row += 1) {
+    animations.addClear(
+      metrics.offsetX +
+        (col + 0.5) * metrics.cellSize,
+      metrics.offsetY +
+        (row + 0.5) * metrics.cellSize,
+      metrics.cellSize,
+      intensity
+    );
+  }
+}
   );
 
   for (const row of result.clear.rows ?? []) {
