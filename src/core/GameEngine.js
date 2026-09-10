@@ -180,10 +180,7 @@ export function createGameEngine(
       return null;
     }
 
-    const movePath =
-      endMove(state);
-
-    if (!movePath) {
+    if (state.path.length === 0) {
       return {
         accepted: false,
       };
