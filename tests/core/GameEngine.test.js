@@ -317,3 +317,41 @@ describe("GameEngine", () => {
     );
   });
 });
+
+describe("GameEngine session controls", () => {
+  it("pauses and resumes a playing game without accepting input while paused", () => {
+    const engine = createGameEngine();
+    engine.start();
+    assert.equal(engine.pause(), true);
+    assert.equal(engine.getState().phase, "paused");
+    assert.equal(engine.beginMove(0, 0), false);
+    assert.equal(engine.resume(), true);
+    assert.equal(engine.getState().phase, "playing");
+  });
+
+  it("rejects revive unless the game is over", () => {
+    const engine = createGameEngine();
+    engine.start();
+    assert.equal(engine.revive(), false);
+  });
+});
+
+  it("revives a game-over state once and emits a revive event", () => {
+    const engine = createGameEngine({
+      mode: {
+        playMove: () => ({ accepted: true, move: [], clear: { count: 0 }, score: 0, gameover: true }),
+        hasPossibleMove: () => true,
+      },
+    });
+    let reviveEvents = 0;
+    engine.on("game:revive", () => { reviveEvents += 1; });
+    engine.start();
+    engine.beginMove(0, 0);
+    engine.finishMove();
+    assert.equal(engine.getState().phase, "gameover");
+    assert.equal(engine.revive(), true);
+    assert.equal(engine.getState().phase, "playing");
+    assert.equal(engine.getState().session.revives, 1);
+    assert.equal(reviveEvents, 1);
+    assert.equal(engine.revive(), false);
+  });

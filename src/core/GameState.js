@@ -26,6 +26,7 @@ export function createGameState({
 
     session: {
       moves: 0,
+      revives: 0,
     },
 
     lastMove: null,
