@@ -10,10 +10,20 @@ export function resetCombo(state) {
   return state.combo;
 }
 
-export function updateCombo(state, linesCleared) {
-  if (linesCleared > 0) {
-    return increaseCombo(state);
+export function updateCombo(
+  state,
+  linesCleared,
+  boardEmpty = false
+) {
+  if (linesCleared <= 0) {
+    return resetCombo(state);
   }
 
-  return resetCombo(state);
+  if (boardEmpty) {
+    state.combo = 8;
+
+    return state.combo;
+  }
+
+  return increaseCombo(state);
 }
