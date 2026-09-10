@@ -1,23 +1,38 @@
-import { createGameState, resetGameState } from "./GameState.js";
+import {
+  createGameState,
+  resetGameState,
+} from "./GameState.js";
+
 import {
   startMove,
   continueMove,
   cancelMove,
   endMove,
 } from "./MoveSystem.js";
-import { clearLines } from "./ClearSystem.js";
-import { updateCombo } from "./ComboSystem.js";
-import { addScore } from "./ScoreSystem.js";
-import { updateDifficulty } from "./DifficultySystem.js";
+
+import {
+  updateDifficulty,
+} from "./DifficultySystem.js";
+
 import {
   generateBlocks,
 } from "./GenerationSystem.js";
+
 import {
-  hasAvailableMove,
   canGenerateBlocks,
 } from "./FairnessSystem.js";
-import { createEventBus } from "./EventBus.js";
-import { createStateMachine } from "./StateMachine.js";
+
+import {
+  createEventBus,
+} from "./EventBus.js";
+
+import {
+  createStateMachine,
+} from "./StateMachine.js";
+
+import {
+  createClassicMode,
+} from "../modes/classic/ClassicMode.js";
 
 const transitions = {
   ready: ["playing"],
@@ -25,99 +40,166 @@ const transitions = {
   gameover: ["ready"],
 };
 
-export function createGameEngine(options = {}) {
-  let state = createGameState(options);
-  const events = createEventBus();
+export function createGameEngine(
+  options = {}
+) {
+  let state =
+    createGameState(options);
 
-  const machine = createStateMachine(
-    state.phase,
-    transitions
-  );
+  const events =
+    createEventBus();
+
+  const mode =
+    options.mode ||
+    createClassicMode();
+
+  const machine =
+    createStateMachine(
+      state.phase,
+      transitions
+    );
 
   function syncPhase() {
-    state.phase = machine.getState();
+    state.phase =
+      machine.getState();
+  }
+
+  function resolveMove() {
+    const result =
+      mode.playMove(state);
+
+    if (!result.accepted) {
+      return result;
+    }
+
+    updateDifficulty(state);
+
+    events.emit("move", {
+      move: result.move,
+      clear: result.clear,
+      score: state.score,
+      gained: result.score,
+      combo: state.combo,
+      level: state.level,
+      turn: state.turn,
+    });
+
+    if (result.gameover) {
+      machine.transition(
+        "gameover"
+      );
+
+      syncPhase();
+
+      events.emit(
+        "game:over",
+        state
+      );
+    }
+
+    return result;
   }
 
   function start() {
-    if (machine.getState() === "ready") {
-      machine.transition("playing");
+    if (
+      machine.getState() ===
+      "ready"
+    ) {
+      machine.transition(
+        "playing"
+      );
+
       syncPhase();
-      events.emit("game:start", state);
+
+      events.emit(
+        "game:start",
+        state
+      );
     }
 
     return state;
   }
 
   function move(row, col) {
-    if (machine.getState() !== "playing") {
+    if (
+      machine.getState() !==
+      "playing"
+    ) {
       return false;
     }
 
-    const started = startMove(state, row, col);
+    const started =
+      startMove(
+        state,
+        row,
+        col
+      );
 
     if (!started) {
       return false;
     }
 
-    const movePath = endMove(state);
-
-    state.lastMove = movePath;
-
-    const lines = clearLines(state.board);
-
-    state.lastClear = lines;
-
-    updateCombo(state, lines.count);
-    addScore(state, lines.count);
-    updateDifficulty(state);
-
-    events.emit("move", {
-      move: movePath,
-      clear: lines,
-      score: state.score,
-      combo: state.combo,
-      level: state.level,
-    });
-
-    if (!hasAvailableMove(state.board)) {
-      machine.transition("gameover");
-      syncPhase();
-
-      events.emit("game:over", state);
-    }
-
-    return true;
+    return resolveMove();
   }
 
   function beginMove(row, col) {
-    if (machine.getState() !== "playing") {
+    if (
+      machine.getState() !==
+      "playing"
+    ) {
       return false;
     }
 
-    return startMove(state, row, col);
+    return startMove(
+      state,
+      row,
+      col
+    );
   }
 
   function extendMove(row, col) {
-    if (machine.getState() !== "playing") {
+    if (
+      machine.getState() !==
+      "playing"
+    ) {
       return false;
     }
 
-    return continueMove(state, row, col);
+    return continueMove(
+      state,
+      row,
+      col
+    );
   }
 
   function finishMove() {
-    if (machine.getState() !== "playing") {
+    if (
+      machine.getState() !==
+      "playing"
+    ) {
       return null;
     }
 
-    return endMove(state);
+    const movePath =
+      endMove(state);
+
+    if (!movePath) {
+      return {
+        accepted: false,
+      };
+    }
+
+    return resolveMove();
   }
 
   function cancelCurrentMove() {
     cancelMove(state);
   }
 
-  function generate(count, seed = state.seed) {
+  function generate(
+    count,
+    seed = state.seed
+  ) {
     if (
       !canGenerateBlocks(
         state.board,
@@ -127,11 +209,12 @@ export function createGameEngine(options = {}) {
       return [];
     }
 
-    const generated = generateBlocks(
-      state.board,
-      count,
-      seed
-    );
+    const generated =
+      generateBlocks(
+        state.board,
+        count,
+        seed
+      );
 
     events.emit(
       "blocks:generated",
@@ -141,20 +224,41 @@ export function createGameEngine(options = {}) {
     return generated;
   }
 
-  function restart(seed = state.seed) {
-    if (machine.getState() === "playing") {
-      machine.transition("ready");
+  function restart(
+    seed = state.seed
+  ) {
+    if (
+      machine.getState() ===
+      "playing"
+    ) {
+      machine.transition(
+        "ready"
+      );
     }
 
-    if (machine.getState() === "gameover") {
-      machine.transition("ready");
+    if (
+      machine.getState() ===
+      "gameover"
+    ) {
+      machine.transition(
+        "ready"
+      );
     }
 
-    state = resetGameState(state, seed);
+    state =
+      resetGameState(
+        state,
+        seed
+      );
+
     machine.reset("ready");
+
     syncPhase();
 
-    events.emit("game:restart", state);
+    events.emit(
+      "game:restart",
+      state
+    );
 
     return state;
   }
@@ -163,8 +267,14 @@ export function createGameEngine(options = {}) {
     return state;
   }
 
-  function on(event, listener) {
-    return events.on(event, listener);
+  function on(
+    event,
+    listener
+  ) {
+    return events.on(
+      event,
+      listener
+    );
   }
 
   return {
@@ -179,4 +289,4 @@ export function createGameEngine(options = {}) {
     getState,
     on,
   };
-      }
+}
