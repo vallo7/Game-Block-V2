@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 
 import {
   createGameState,
@@ -9,11 +10,11 @@ describe("GameState", () => {
   it("creates an 8x8 board by default", () => {
     const state = createGameState();
 
-    expect(state.size).toBe(8);
-    expect(state.board).toHaveLength(8);
-    expect(
+    assert.equal(state.size, 8);
+    assert.equal(state.board.length, 8);
+    assert.ok(
       state.board.every((row) => row.length === 8)
-    ).toBe(true);
+    );
   });
 
   it("initializes the core state", () => {
@@ -21,20 +22,20 @@ describe("GameState", () => {
       seed: 42,
     });
 
-    expect(state.seed).toBe(42);
-    expect(state.phase).toBe("ready");
+    assert.equal(state.seed, 42);
+    assert.equal(state.phase, "ready");
 
-    expect(state.path).toEqual([]);
+    assert.deepEqual(state.path, []);
 
-    expect(state.score).toBe(0);
-    expect(state.combo).toBe(0);
-    expect(state.level).toBe(1);
+    assert.equal(state.score, 0);
+    assert.equal(state.combo, 0);
+    assert.equal(state.level, 1);
 
-    expect(state.queue).toEqual([]);
-    expect(state.obstacles).toEqual([]);
+    assert.deepEqual(state.queue, []);
+    assert.deepEqual(state.obstacles, []);
 
-    expect(state.lastMove).toBeNull();
-    expect(state.lastClear).toBeNull();
+    assert.equal(state.lastMove, null);
+    assert.equal(state.lastClear, null);
   });
 
   it("creates an empty board", () => {
@@ -42,7 +43,7 @@ describe("GameState", () => {
       size: 4,
     });
 
-    expect(state.board).toEqual([
+    assert.deepEqual(state.board, [
       [null, null, null, null],
       [null, null, null, null],
       [null, null, null, null],
@@ -62,14 +63,14 @@ describe("GameState", () => {
 
     const reset = resetGameState(state, 99);
 
-    expect(reset.seed).toBe(99);
-    expect(reset.size).toBe(8);
+    assert.equal(reset.seed, 99);
+    assert.equal(reset.size, 8);
 
-    expect(reset.score).toBe(0);
-    expect(reset.combo).toBe(0);
-    expect(reset.level).toBe(1);
+    assert.equal(reset.score, 0);
+    assert.equal(reset.combo, 0);
+    assert.equal(reset.level, 1);
 
-    expect(reset.path).toEqual([]);
-    expect(reset.board).toHaveLength(8);
+    assert.deepEqual(reset.path, []);
+    assert.equal(reset.board.length, 8);
   });
 });
