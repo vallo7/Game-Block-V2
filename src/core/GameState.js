@@ -1,3 +1,5 @@
+import { createBoard } from "./Board.js";
+
 export function createGameState({
   seed = 1,
   size = 8,
@@ -8,9 +10,7 @@ export function createGameState({
     seed,
     size,
 
-    board: Array.from({ length: size }, () =>
-      Array(size).fill(null)
-    ),
+    board: createBoard(size),
 
     path: [],
 
