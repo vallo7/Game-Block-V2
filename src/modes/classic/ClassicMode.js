@@ -3,10 +3,22 @@ import {
 } from "../../core/ClearSystem.js";
 
 import {
+  updateCombo,
+} from "../../core/ComboSystem.js";
+
+import {
+  addScore,
+} from "../../core/ScoreSystem.js";
+
+import {
   isInside,
 } from "../../core/Board.js";
 
-function isValidPath(board, path, requiredBlocks) {
+function isValidPath(
+  board,
+  path,
+  requiredBlocks
+) {
   if (
     !Array.isArray(path) ||
     path.length !== requiredBlocks
@@ -25,12 +37,17 @@ function isValidPath(board, path, requiredBlocks) {
 
     if (
       !cell ||
-      !isInside(board, cell.row, cell.col)
+      !isInside(
+        board,
+        cell.row,
+        cell.col
+      )
     ) {
       return false;
     }
 
-    const key = `${cell.row}:${cell.col}`;
+    const key =
+      `${cell.row}:${cell.col}`;
 
     if (
       visited.has(key) ||
@@ -40,11 +57,16 @@ function isValidPath(board, path, requiredBlocks) {
     }
 
     if (index > 0) {
-      const previous = path[index - 1];
+      const previous =
+        path[index - 1];
 
       const distance =
-        Math.abs(previous.row - cell.row) +
-        Math.abs(previous.col - cell.col);
+        Math.abs(
+          previous.row - cell.row
+        ) +
+        Math.abs(
+          previous.col - cell.col
+        );
 
       if (distance !== 1) {
         return false;
@@ -75,9 +97,15 @@ function hasPathFrom(
     [0, 1],
   ];
 
-  for (const [rowOffset, colOffset] of directions) {
-    const nextRow = row + rowOffset;
-    const nextCol = col + colOffset;
+  for (
+    const [rowOffset, colOffset]
+    of directions
+  ) {
+    const nextRow =
+      row + rowOffset;
+
+    const nextCol =
+      col + colOffset;
 
     if (
       !isInside(
@@ -90,12 +118,14 @@ function hasPathFrom(
     }
 
     if (
-      board[nextRow][nextCol] !== null
+      board[nextRow][nextCol] !==
+      null
     ) {
       continue;
     }
 
-    const key = `${nextRow}:${nextCol}`;
+    const key =
+      `${nextRow}:${nextCol}`;
 
     if (visited.has(key)) {
       continue;
@@ -126,7 +156,9 @@ function hasPossibleMove(
   requiredBlocks
 ) {
   if (
-    !Number.isInteger(requiredBlocks) ||
+    !Number.isInteger(
+      requiredBlocks
+    ) ||
     requiredBlocks <= 0
   ) {
     return false;
@@ -144,13 +176,17 @@ function hasPossibleMove(
       col < board[row].length;
       col += 1
     ) {
-      if (board[row][col] === null) {
+      if (
+        board[row][col] === null
+      ) {
         emptyCells += 1;
       }
     }
   }
 
-  if (emptyCells < requiredBlocks) {
+  if (
+    emptyCells < requiredBlocks
+  ) {
     return false;
   }
 
@@ -164,7 +200,9 @@ function hasPossibleMove(
       col < board[row].length;
       col += 1
     ) {
-      if (board[row][col] !== null) {
+      if (
+        board[row][col] !== null
+      ) {
         continue;
       }
 
@@ -189,60 +227,22 @@ function hasPossibleMove(
   return false;
 }
 
-function placeMove(state, move) {
+function placeMove(
+  state,
+  move
+) {
   for (const cell of move) {
     state.board[cell.row][cell.col] =
       "block";
   }
 }
 
-function calculateScore(
-  state,
-  linesCleared
-) {
-  if (linesCleared <= 0) {
-    return 0;
-  }
-
-  const baseScore =
-    linesCleared * 100;
-
-  const previousMilestones =
-    Math.floor(
-      state.totalCleared / 2
-    );
-
-  const nextTotal =
-    state.totalCleared +
-    linesCleared;
-
-  const newMilestones =
-    Math.floor(nextTotal / 2);
-
-  const milestoneBonus =
-    (newMilestones -
-      previousMilestones) *
-    200;
-
-  const multiplier =
-    Math.max(1, state.combo);
-
-  let score =
-    (baseScore + milestoneBonus) *
-    multiplier;
-
-  const boardEmpty =
-    state.board.every((row) =>
-      row.every(
-        (cell) => cell === null
-      )
-    );
-
-  if (boardEmpty) {
-    score += 300 * 8;
-  }
-
-  return score;
+function isBoardEmpty(board) {
+  return board.every((row) =>
+    row.every(
+      (cell) => cell === null
+    )
+  );
 }
 
 export function createClassicMode() {
@@ -283,28 +283,21 @@ export function createClassicMode() {
       clearLines(state.board);
 
     const boardEmpty =
-      state.board.every((row) =>
-        row.every(
-          (cell) => cell === null
-        )
-      );
+      isBoardEmpty(state.board);
 
-    if (lines.count > 0) {
-      state.combo =
-        boardEmpty
-          ? 8
-          : state.combo + 1;
-    } else {
-      state.combo = 0;
-    }
+    updateCombo(
+      state,
+      lines.count,
+      boardEmpty
+    );
 
     const gained =
-      calculateScore(
+      addScore(
         state,
-        lines.count
+        lines.count,
+        boardEmpty
       );
 
-    state.score += gained;
     state.totalCleared +=
       lines.count;
 
@@ -334,4 +327,4 @@ export function createClassicMode() {
     playMove,
     hasPossibleMove,
   };
-}
+    }
