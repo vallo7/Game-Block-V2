@@ -16,6 +16,7 @@ export function createGameState({
 
     score: 0,
     combo: 0,
+    comboUntil: 0,
     level: 1,
     totalCleared: 0,
 
@@ -32,7 +33,10 @@ export function createGameState({
   };
 }
 
-export function resetGameState(state, seed = state.seed) {
+export function resetGameState(
+  state,
+  seed = state.seed
+) {
   return createGameState({
     seed,
     size: state.size,
