@@ -1,5 +1,6 @@
 export class EffectsRenderer {
-  constructor() {
+  constructor(animationSystem) {
+    this.animationSystem = animationSystem;
     this.flash = 0;
     this.pulse = 0;
   }
@@ -31,6 +32,8 @@ export class EffectsRenderer {
   }
 
   render(ctx, state, viewport) {
+    this.renderClearAnimations(ctx);
+
     if (this.flash <= 0 && this.pulse <= 0) {
       return;
     }
@@ -66,5 +69,53 @@ export class EffectsRenderer {
     }
 
     ctx.restore();
+  }
+
+  renderClearAnimations(ctx) {
+    const animations =
+      this.animationSystem.getActive();
+
+    for (const animation of animations) {
+      if (animation.type !== "clear") {
+        continue;
+      }
+
+      const progress =
+        this.animationSystem.easeOutCubic(
+          this.animationSystem.getProgress(animation)
+        );
+
+      const radius =
+        animation.size *
+        (0.2 + progress * 0.8);
+
+      const alpha =
+        (1 - progress) *
+        0.45 *
+        animation.intensity;
+
+      ctx.save();
+
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = "#fde68a";
+      ctx.lineWidth = Math.max(
+        2,
+        animation.size * 0.08
+      );
+
+      ctx.beginPath();
+
+      ctx.arc(
+        animation.x,
+        animation.y,
+        radius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.stroke();
+
+      ctx.restore();
+    }
   }
 }
