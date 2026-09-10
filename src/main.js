@@ -84,8 +84,48 @@ function render(currentTime) {
   window.requestAnimationFrame(render);
 }
 
-engine.on("move", () => {
-  effectsRenderer.triggerFlash();
+engine.on("move", (result) => {
+  const clearCount = result.clear?.count ?? 0;
+
+  if (clearCount <= 0) {
+    return;
+  }
+
+  effectsRenderer.triggerFlash(
+    Math.min(1, 0.4 + clearCount * 0.15)
+  );
+
+  effectsRenderer.triggerPulse(
+    Math.min(1, 0.35 + clearCount * 0.12)
+  );
+
+  const metrics = boardRenderer.getMetrics(
+    engine.getState(),
+    {
+      width: canvasRenderer.width,
+      height: canvasRenderer.height,
+    }
+  );
+
+  for (const row of result.clear.rows ?? []) {
+    for (let col = 0; col < engine.getState().size; col += 1) {
+      particles.emitBurst(
+        metrics.offsetX + (col + 0.5) * metrics.cellSize,
+        metrics.offsetY + (row + 0.5) * metrics.cellSize,
+        1 + clearCount * 0.15
+      );
+    }
+  }
+
+  for (const col of result.clear.columns ?? []) {
+    for (let row = 0; row < engine.getState().size; row += 1) {
+      particles.emitBurst(
+        metrics.offsetX + (col + 0.5) * metrics.cellSize,
+        metrics.offsetY + (row + 0.5) * metrics.cellSize,
+        1 + clearCount * 0.15
+      );
+    }
+  }
 });
 
 window.requestAnimationFrame(render);
