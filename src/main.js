@@ -48,10 +48,9 @@ const canvasRenderer = new CanvasRenderer(canvas);
 const boardRenderer = new BoardRenderer();
 const blockRenderer = new BlockRenderer();
 const pathRenderer = new PathRenderer();
-const animations = new AnimationSystem();
-const effectsRenderer = new EffectsRenderer(animations);
 const particles = new ParticleSystem();
 const animations = new AnimationSystem();
+const effectsRenderer = new EffectsRenderer(animations);
 
 const renderers = [
   boardRenderer,
@@ -101,62 +100,59 @@ engine.on("move", (result) => {
     Math.min(1, 0.35 + clearCount * 0.12)
   );
 
+  const state = engine.getState();
+
   const metrics = boardRenderer.getMetrics(
-    engine.getState(),
+    state,
     {
       width: canvasRenderer.width,
       height: canvasRenderer.height,
     }
+  );
 
-    const state = engine.getState();
-const intensity = Math.min(
-  2,
-  1 + clearCount * 0.2
-);
-
-for (const row of result.clear.rows ?? []) {
-  for (let col = 0; col < state.size; col += 1) {
-    animations.addClear(
-      metrics.offsetX +
-        (col + 0.5) * metrics.cellSize,
-      metrics.offsetY +
-        (row + 0.5) * metrics.cellSize,
-      metrics.cellSize,
-      intensity
-    );
-  }
-}
-
-for (const col of result.clear.columns ?? []) {
-  for (let row = 0; row < state.size; row += 1) {
-    animations.addClear(
-      metrics.offsetX +
-        (col + 0.5) * metrics.cellSize,
-      metrics.offsetY +
-        (row + 0.5) * metrics.cellSize,
-      metrics.cellSize,
-      intensity
-    );
-  }
-}
+  const intensity = Math.min(
+    2,
+    1 + clearCount * 0.2
   );
 
   for (const row of result.clear.rows ?? []) {
-    for (let col = 0; col < engine.getState().size; col += 1) {
+    for (let col = 0; col < state.size; col += 1) {
       particles.emitBurst(
-        metrics.offsetX + (col + 0.5) * metrics.cellSize,
-        metrics.offsetY + (row + 0.5) * metrics.cellSize,
-        1 + clearCount * 0.15
+        metrics.offsetX +
+          (col + 0.5) * metrics.cellSize,
+        metrics.offsetY +
+          (row + 0.5) * metrics.cellSize,
+        intensity
+      );
+
+      animations.addClear(
+        metrics.offsetX +
+          (col + 0.5) * metrics.cellSize,
+        metrics.offsetY +
+          (row + 0.5) * metrics.cellSize,
+        metrics.cellSize,
+        intensity
       );
     }
   }
 
   for (const col of result.clear.columns ?? []) {
-    for (let row = 0; row < engine.getState().size; row += 1) {
+    for (let row = 0; row < state.size; row += 1) {
       particles.emitBurst(
-        metrics.offsetX + (col + 0.5) * metrics.cellSize,
-        metrics.offsetY + (row + 0.5) * metrics.cellSize,
-        1 + clearCount * 0.15
+        metrics.offsetX +
+          (col + 0.5) * metrics.cellSize,
+        metrics.offsetY +
+          (row + 0.5) * metrics.cellSize,
+        intensity
+      );
+
+      animations.addClear(
+        metrics.offsetX +
+          (col + 0.5) * metrics.cellSize,
+        metrics.offsetY +
+          (row + 0.5) * metrics.cellSize,
+        metrics.cellSize,
+        intensity
       );
     }
   }
