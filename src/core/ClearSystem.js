@@ -5,7 +5,7 @@ export function findCompletedRows(board) {
 
   for (let row = 0; row < board.length; row += 1) {
     const complete = board[row].every(
-      (cell) => !isEmpty(board, row, cell)
+      (cell) => cell !== null
     );
 
     if (complete) {
