@@ -73,6 +73,7 @@ function render(currentTime) {
   const state = engine.getState();
 
   particles.update(deltaTime);
+  blockRenderer.update(state, deltaTime);
   animations.update(deltaTime);
   effectsRenderer.update(deltaTime);
 
