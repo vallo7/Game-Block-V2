@@ -35,8 +35,9 @@ import {
 
 const transitions = {
   ready: ["playing"],
-  playing: ["gameover", "ready"],
-  gameover: ["ready"],
+  playing: ["paused", "gameover", "ready"],
+  paused: ["playing", "ready"],
+  gameover: ["playing", "ready"],
 };
 
 export function createGameEngine(
@@ -220,6 +221,43 @@ export function createGameEngine(
     return generated;
   }
 
+  function pause() {
+    if (machine.getState() !== "playing") return false;
+    machine.transition("paused");
+    syncPhase();
+    events.emit("game:pause", state);
+    return true;
+  }
+
+  function resume() {
+    if (machine.getState() !== "paused") return false;
+    machine.transition("playing");
+    syncPhase();
+    events.emit("game:resume", state);
+    return true;
+  }
+
+  function revive() {
+    if (machine.getState() !== "gameover" || state.session.revives > 0) {
+      return false;
+    }
+
+    for (let row = state.size - 1; row >= 0; row -= 1) {
+      for (let col = state.size - 1; col >= 0; col -= 1) {
+        if (state.board[row][col] === "block") state.board[row][col] = null;
+        if (mode.hasPossibleMove(state.board, state.requiredBlocks)) {
+          state.session.revives += 1;
+          machine.transition("playing");
+          syncPhase();
+          events.emit("game:revive", state);
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   function restart(
     seed = state.seed
   ) {
@@ -281,6 +319,9 @@ export function createGameEngine(
     finishMove,
     cancelCurrentMove,
     generate,
+    pause,
+    resume,
+    revive,
     restart,
     getState,
     on,
