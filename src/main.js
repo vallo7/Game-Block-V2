@@ -74,6 +74,7 @@ function render(currentTime) {
 
   particles.update(deltaTime);
   blockRenderer.update(state, deltaTime);
+  pathRenderer.update(state, deltaTime);
   animations.update(deltaTime);
   effectsRenderer.update(deltaTime);
 
