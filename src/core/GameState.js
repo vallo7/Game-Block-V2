@@ -9,17 +9,23 @@ export function createGameState({
 
     seed,
     size,
+    turn: 1,
 
     board: createBoard(size),
-
     path: [],
 
     score: 0,
     combo: 0,
     level: 1,
+    totalCleared: 0,
 
+    requiredBlocks: 3,
     queue: [],
     obstacles: [],
+
+    session: {
+      moves: 0,
+    },
 
     lastMove: null,
     lastClear: null,
