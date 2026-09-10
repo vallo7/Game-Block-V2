@@ -4,6 +4,7 @@ import {
 
 import {
   updateCombo,
+  expireCombo,
 } from "../../core/ComboSystem.js";
 
 import {
@@ -118,8 +119,7 @@ function hasPathFrom(
     }
 
     if (
-      board[nextRow][nextCol] !==
-      null
+      board[nextRow][nextCol] !== null
     ) {
       continue;
     }
@@ -161,10 +161,10 @@ function hasPossibleMove(
     ) ||
     requiredBlocks <= 0
   ) {
-    return false;
+    return true;
   }
 
-  let emptyCells = 0;
+  let openCells = 0;
 
   for (
     let row = 0;
@@ -179,13 +179,13 @@ function hasPossibleMove(
       if (
         board[row][col] === null
       ) {
-        emptyCells += 1;
+        openCells += 1;
       }
     }
   }
 
   if (
-    emptyCells < requiredBlocks
+    openCells < requiredBlocks
   ) {
     return false;
   }
@@ -256,6 +256,16 @@ export function createClassicMode() {
       };
     }
 
+    const now =
+      Number.isFinite(state.gameNow)
+        ? state.gameNow
+        : Date.now();
+
+    expireCombo(
+      state,
+      now
+    );
+
     if (
       !isValidPath(
         state.board,
@@ -288,14 +298,14 @@ export function createClassicMode() {
     updateCombo(
       state,
       lines.count,
-      boardEmpty
+      boardEmpty,
+      now
     );
 
     const gained =
       addScore(
         state,
-        lines.count,
-        boardEmpty
+        lines.count
       );
 
     state.totalCleared +=
@@ -314,6 +324,7 @@ export function createClassicMode() {
       score: gained,
       totalScore: state.score,
       combo: state.combo,
+      comboUntil: state.comboUntil,
       turn: state.turn,
       gameover:
         !hasPossibleMove(
@@ -327,4 +338,4 @@ export function createClassicMode() {
     playMove,
     hasPossibleMove,
   };
-    }
+}
