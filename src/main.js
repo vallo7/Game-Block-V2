@@ -41,7 +41,6 @@ const engine = createGameEngine({
 });
 
 engine.start();
-
 engine.generate(10);
 
 const canvasRenderer = new CanvasRenderer(canvas);
@@ -61,7 +60,7 @@ const renderers = [
   effectsRenderer,
 ];
 
-let previousTime = performance.now();
+let previousTime = window.performance.now();
 
 function render(currentTime) {
   const deltaTime = Math.min(
@@ -81,14 +80,14 @@ function render(currentTime) {
 
   scoreElement.textContent = state.score;
 
-  requestAnimationFrame(render);
+  window.requestAnimationFrame(render);
 }
 
 engine.on("move", () => {
   effectsRenderer.triggerFlash();
 });
 
-requestAnimationFrame(render);
+window.requestAnimationFrame(render);
 
 window.gameBlock = {
   engine,
