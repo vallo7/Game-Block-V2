@@ -1,6 +1,6 @@
 export class CanvasRenderer {
   constructor(canvas, options = {}) {
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas || typeof canvas.getContext !== "function") {
       throw new TypeError("CanvasRenderer requires a canvas element");
     }
 
@@ -19,26 +19,49 @@ export class CanvasRenderer {
   }
 
   observeResize() {
-    if (typeof ResizeObserver === "undefined") {
+    if (typeof window.ResizeObserver === "undefined") {
       window.addEventListener("resize", () => this.resize());
       return;
     }
 
-    this.resizeObserver = new ResizeObserver(() => this.resize());
-    this.resizeObserver.observe(this.canvas.parentElement || this.canvas);
+    this.resizeObserver = new window.ResizeObserver(() => {
+      this.resize();
+    });
+
+    this.resizeObserver.observe(
+      this.canvas.parentElement || this.canvas
+    );
   }
 
   resize() {
     const rect = this.canvas.getBoundingClientRect();
-    const width = Math.max(1, rect.width || window.innerWidth);
-    const height = Math.max(1, rect.height || window.innerHeight);
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(
+      1,
+      rect.width || window.innerWidth
+    );
+
+    const height = Math.max(
+      1,
+      rect.height || window.innerHeight
+    );
+
+    const dpr = Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
 
     this.canvas.width = Math.round(width * dpr);
     this.canvas.height = Math.round(height * dpr);
 
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx.setTransform(
+      dpr,
+      0,
+      0,
+      dpr,
+      0,
+      0
+    );
 
     this.width = width;
     this.height = height;
@@ -47,8 +70,16 @@ export class CanvasRenderer {
 
   clear() {
     this.ctx.save();
+
     this.ctx.fillStyle = this.background;
-    this.ctx.fillRect(0, 0, this.width, this.height);
+
+    this.ctx.fillRect(
+      0,
+      0,
+      this.width,
+      this.height
+    );
+
     this.ctx.restore();
   }
 
